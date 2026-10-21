@@ -48,19 +48,7 @@ class SmartKeyboardService : InputMethodService() {
         requestHideSelf(0)
     }
 
-    private fun hasExternalKeyboard(): Boolean {
-        val c = resources.configuration
-        if (c.keyboard != Configuration.KEYBOARD_NOKEYS &&
-            c.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO
-        ) return true
-
-        return InputDevice.getDeviceIds().any { id ->
-            val d = InputDevice.getDevice(id) ?: return@any false
-            !d.isVirtual &&
-                (d.sources and InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD &&
-                d.keyboardType == InputDevice.KEYBOARD_TYPE_ALPHABETIC
-        }
-    }
+    private fun hasExternalKeyboard() = KeyboardUtils.hasExternalKeyboard(this)
 
     override fun onEvaluateInputViewShown(): Boolean {
         super.onEvaluateInputViewShown()
@@ -68,6 +56,21 @@ class SmartKeyboardService : InputMethodService() {
     }
 
     override fun onEvaluateFullscreenMode(): Boolean = false
+
+    // Refuse every show request (tap, mouse click, app call) while a hardware keyboard is attached.
+    override fun onShowInputRequested(flags: Int, configChange: Boolean): Boolean {
+        if (hasExternalKeyboard()) return false
+        return super.onShowInputRequested(flags, configChange)
+    }
+
+    // Safety net: if the window still gets created, hide it straight away.
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        if (hasExternalKeyboard()) requestHideSelf(0)
+    }
+
+    // We have no suggestion strip, so never show a candidates view either.
+    override fun onEvaluateCandidatesViewShown(): Boolean = false
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
