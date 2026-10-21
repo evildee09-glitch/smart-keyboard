@@ -69,9 +69,6 @@ class SmartKeyboardService : InputMethodService() {
         if (hasExternalKeyboard()) requestHideSelf(0)
     }
 
-    // We have no suggestion strip, so never show a candidates view either.
-    override fun onEvaluateCandidatesViewShown(): Boolean = false
-
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         refresh()

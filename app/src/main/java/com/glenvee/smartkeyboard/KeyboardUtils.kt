@@ -10,6 +10,7 @@ object KeyboardUtils {
     /** Physical (non-virtual) alphabetic keyboards currently connected. */
     fun externalKeyboards(): List<InputDevice> =
         InputDevice.getDeviceIds()
+            .toList()
             .mapNotNull { InputDevice.getDevice(it) }
             .filter {
                 !it.isVirtual &&
